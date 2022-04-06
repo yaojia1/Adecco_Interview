@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
  * Data: 2022/4/5 20:30 update
  * pass rate: 50%
  * problem: 被切割的空间忘记合并了，竟然能过50%也是谢谢写测试的了！
+ *
+ * Data：2020/4/6 18:20-19:32 update
+ * fix: 已合并，顺便解决了另一错误。。。
  */
 public class Space_allocation {
     /* Question description:
@@ -52,36 +55,69 @@ public class Space_allocation {
                 }else {
                     if (op.equals("RELEASE")){
                         if (!release(len)){
-                            System.out.println("error");return;
+                            System.out.println("error"+len);return;
                         }
+
+                    }else {
+                        System.out.println("error"+op);return;
                     }
-                    System.out.println("error");return;
                 }
+                /*
+                打印两个池
+                System.out.println("requested:");
+                used_places.forEach((key1 , value1) -> System.out.print(key1.toString() + ":" + value1.toString() + ", "));
+                System.out.println("\nreleased:");
+                released_place.forEach((key , value) -> System.out.print(key.toString() + ":" + value.toString() + ", "));
+                System.out.println();
+                */
             }
         }
 
 
 
         public Boolean request(int len){
-            if (!used_places.containsKey(len)){
-                for (Map.Entry<Integer, Integer> p:released_place.entrySet().stream().sorted((o1 , o2) -> o1.getKey().compareTo(o2.getKey())).collect(Collectors.toList())){
-                    //ystem.out.println(p.getKey()+","+p.getValue());
-                    if (p.getValue()>=len){
-                        used_places.put(p.getKey(),len);
-                        System.out.println(p.getKey());
-                        if (p.getValue()>len){
-                            released_place.put(p.getKey()+len,p.getValue()-len);
-                        }
-                        released_place.remove(p.getKey());
-                        return true;
+            //System.out.println("requesting !!! at "+len+"in"+released_place.entrySet().size()+"个空间");
+            for (Map.Entry<Integer, Integer> p:released_place.entrySet().stream()
+                    .sorted(Map.Entry.comparingByKey()).collect(Collectors.toList())) {
+                //System.out.println("查找空闲：" + p.getKey() + "," + p.getValue());
+                if (p.getValue() >= len) {
+                    used_places.put(p.getKey() , len);
+                    System.out.println(p.getKey());
+                    if (p.getValue() > len) {
+                        released_place.put(p.getKey() + len , p.getValue() - len);
                     }
+                    released_place.remove(p.getKey());
+                    return true;
                 }
             }
+            //System.out.println("没有？？？");
             return false;
         }
         public Boolean release(int index){
             if (used_places.containsKey(index)){
-                released_place.put(index,used_places.get(index));
+                //找出相连的所有
+                //1. 先找大于的
+                int len=used_places.get(index),temp;
+                while (released_place.containsKey(index+len)){
+                    temp=len;
+                    len+=released_place.get(index+len);
+                    released_place.remove(index+temp);
+                    //System.out.println("往后连接："+(index+temp)+":"+(len-temp));
+                }
+
+                //2. 找小于的
+                int temp_indext=index;
+                for (Map.Entry<Integer, Integer> p: released_place.entrySet().stream().sorted(Map.Entry.comparingByKey(Comparator.reverseOrder()))
+                        .filter(o->o.getKey()<index).collect(Collectors.toList())){
+                    if (p.getKey()+p.getValue()==temp_indext){
+                        temp_indext-=p.getValue();
+                        len+=p.getValue();
+                        //System.out.println("往前连接"+temp_indext+":"+(index-temp_indext));
+
+                        released_place.remove(p.getKey());
+                    }
+                }
+                released_place.put(temp_indext,len);
                 used_places.remove(index);
                 return true;
             }

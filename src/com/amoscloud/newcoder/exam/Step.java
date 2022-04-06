@@ -8,6 +8,9 @@ import java.util.Scanner;
  * 1. 忘了考虑0和负数的情况了，但题目好像说正整数啊，看题的时候也没注意能跳特定步长还是最大步长。。。
  * 2. 我一直给的范围是nums[0]和length/2的最小值，忘了数组长度2的情况了，还有nums[0]是不是应该加一？毕竟位置可以等于0+步长
  * 3. 测试了一下输入一个数忘记return了，除了输出0还输出了-1、、、、、、
+ *
+ * Data：2022/4/6 18:15 update
+ * fix：2,3
  */
 public class Step {
     /*
@@ -28,9 +31,11 @@ public class Step {
             System.out.println(-1);
             return;
         }
-        if (nums.length==1) System.out.println(0);
+        if (nums.length==1) {
+            System.out.println(0);return;
+        }
         inp.close();
-        int max=Math.min(nums[0],nums.length/2+nums.length%2);
+        int max=Math.min(nums[0]+1,nums.length/2+nums.length%2);
         int[] steps=new int[max];
         int step=1,pos;
         steps[0]=100;
