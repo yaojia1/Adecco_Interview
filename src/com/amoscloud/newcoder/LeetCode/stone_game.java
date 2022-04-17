@@ -12,6 +12,10 @@ public class stone_game {
     来源：力扣（LeetCode）
     链接：https://leetcode-cn.com/problems/stone-game-iii
      */
+
+    /**
+     * 倒过来的斐波那契，难在题解
+     */
     public static void main(String[] args) {
 
         //对抗算法，a的收益大于b的最大收益
@@ -19,44 +23,38 @@ public class stone_game {
         int[] stoneValue= Arrays.stream(inp.nextLine().split(",")).mapToInt(Integer::parseInt).toArray();
         inp.close();
         //a的起始位置，计算最大优势
-        int[] temp;
-        int pos=0;
-        int round=1,A_value=0,B_value=0;
-        while (pos<stoneValue.length){
-            temp=select_stone(pos,stoneValue);
-            pos+=temp[0];
-            if (round%2==1){
-                A_value+=temp[1];
-            }else {
-                B_value+=temp[1];
-            }
-            System.out.println("round"+round+": "+ Arrays.toString(temp));
+        int[] f=new int[stoneValue.length+1];
+        f[stoneValue.length]=0;
+        int pos=stoneValue.length-1;
+        int round=1;
+        while (pos>=0){
+            f[pos]=select_stone(pos,stoneValue,f);
+            System.out.println("round"+round+": "+ Arrays.toString(f));
             round+=1;
+            pos--;
         }
-        System.out.println(A_value>B_value?"Alice":A_value==B_value?"Tie":"Bob");
+        System.out.println(f[0]>0?"Alice":f[0]==0?"Tie":"Bob");
     }
-    private static int[] select_stone(int pos,int[] stones){
+    private static int select_stone(int pos,int[] stones,int[] f){
         int stone_sum=0;
-        int select_num=1;int select_impro=0;int max_inpro=stones.length>pos+3?stones[pos]-stones[pos+3]:stones[pos];int i=0;
+        //int select_num=1;int max_inpro=stones.length>pos+3?stones[pos]-stones[pos+3]:stones[pos];
+        int i=0;
+        f[pos]=Integer.MIN_VALUE;
         while (stones.length>pos+i&&i<3){
             if (stones.length>pos+i){
                 //每次收益=新增-其他人最大新增
-                select_impro+=stones.length>pos+i+3?Math.max(stones[pos+i],0)-stones[pos+i+3]:stones[pos+i];
-                System.out.println(select_impro+"inpro by"+stones[pos+i]);
+                stone_sum+=stones[pos+i];
+                f[pos]=Math.max(f[pos],stone_sum-f[pos+i+1]);
+                System.out.println(f[pos]+"inpro by"+stones[pos+i]);
                 //累计收益大于0
-                if (select_impro>max_inpro){
-                    //如果选取收益大于不选取
-                    select_num=i+1;max_inpro=select_impro;
-                    //stone_sum+=select_impro;
-                }
                 i++;
             }
         }
-        i=0;
+        /*i=0;
         while (i<select_num) {
             stone_sum+=stones[pos+i];i++;
-        }
-        return new int[]{select_num,stone_sum};
+        }*/
+        return f[pos];
     }
 
 }
